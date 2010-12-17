@@ -1,0 +1,1 @@
+Auth module for Kohana 3. Based heavily on original Auth module, but add's support for multi-site applications. Also removes file driver, in favor of ORM driver as default.
