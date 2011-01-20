@@ -30,9 +30,6 @@ class Model_Multi_Auth_User extends ORM {
 			'max_length' => array(127),
 			'email'      => NULL,
 		),
-		$this->site_field => array(
-			'not_empty'  => NULL,
-		),
 	);
 
 	// Validation callbacks
@@ -48,14 +45,12 @@ class Model_Multi_Auth_User extends ORM {
 		'email'            => 'email address',
 		'password'         => 'password',
 		'password_confirm' => 'password confirmation',
-		$this->site_field  => 'site id field'
 	);
 
 	// Columns to ignore
-	protected $_ignored_columns = array('password_confirm',$this->site_field);
+	protected $_ignored_columns = array('password_confirm');
 
-	// Site ID Field
-	protected $site_field = Kohana::config('multi_auth.site_field');
+	protected $_reload_on_wakeup = FALSE;
 
 	/**
 	 * Validates login information from an array, and optionally redirects
@@ -65,8 +60,14 @@ class Model_Multi_Auth_User extends ORM {
 	 * @param   string   URI or URL to redirect to
 	 * @return  boolean
 	 */
-	public function login(array & $array, $redirect = FALSE)
+	public function login(array & $array, $site_id, $redirect = FALSE)
 	{
+
+		$site_field = Kohana::config('multi_auth.site_field');
+
+		$this->_rules[$site_field] = array('not_empty' => NULL);
+		$this->_ignored_columns = array_merge($this->_ignored_columns, array($site_field));
+
 		$array = Validate::factory($array)
 			->label('username', $this->_labels['username'])
 			->label('password', $this->_labels['password'])
@@ -84,10 +85,10 @@ class Model_Multi_Auth_User extends ORM {
 		{
 			// Attempt to load the user
 			$this->where('username', '=', $array['username'])
-			     ->where($this->site_field, '=', $array[$this->site_field])
+			     ->where($site_field, '=', $site_id)
 			     ->find();
 
-			if ($this->loaded() AND Multi_Auth::instance()->login($array[$this->site_field], $this, $array['password'], $remember))
+			if ($this->loaded() AND Multi_Auth::instance()->login($site_id, $this, $array['password'], $remember))
 			{
 				if (is_string($redirect))
 				{

@@ -11,7 +11,7 @@ class Kohana_Multi_Auth_ORM extends Multi_Auth {
 	 * @param   mixed    permission name string, permission ORM object, or array with permission names
 	 * @return  boolean
 	 */
-	public function logged_in($role = NULL)
+	public function logged_in($permission = NULL)
 	{
 		$status = FALSE;
 
@@ -33,7 +33,7 @@ class Kohana_Multi_Auth_ORM extends Multi_Auth {
 					{
 						if ( ! is_object($_permission))
 						{
-							$_role = ORM::factory('permission', array('name' => $_permission));
+							$_permission = ORM::factory('permission', array('name' => $_permission));
 						}
 
 						// If the user doesn't have the permission
@@ -51,7 +51,7 @@ class Kohana_Multi_Auth_ORM extends Multi_Auth {
 					if ( ! is_object($permission))
 					{
 						// Load the role
-						$role = ORM::factory('permission', array('name' => $permission));
+						$permission = ORM::factory('permission', array('name' => $permission));
 					}
 
 					// Check that the user has the given role
@@ -185,9 +185,9 @@ class Kohana_Multi_Auth_ORM extends Multi_Auth {
 	 *
 	 * @return  mixed
 	 */
-	public function get_user()
+	public function get_user($default = FALSE)
 	{
-		$user = parent::get_user();
+		$user = parent::get_user($default);
 
 		if ($user === FALSE)
 		{
@@ -249,7 +249,7 @@ class Kohana_Multi_Auth_ORM extends Multi_Auth {
 			// Load the user
 			$user = ORM::factory('user');
 			$user->where($user->unique_key($username), '=', $username)
-			     ->where($this->config['site_field'],'=', $site)
+			     ->where(Kohana::config('multi_auth.site_field'),'=', $site)
 			     ->find();
 		}
 

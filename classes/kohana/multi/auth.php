@@ -54,6 +54,12 @@ abstract class Kohana_Multi_Auth {
 	public function __construct($config = array())
 	{
 		// Save the config in the object
+
+		if (empty($config) === TRUE)
+		{
+			$config = Kohana::config('multi_auth');
+		}
+
 		$this->config = $config;
 
 		$this->session = Session::instance();
@@ -61,7 +67,7 @@ abstract class Kohana_Multi_Auth {
 
 	abstract protected function _login($site, $username, $password, $remember);
 
-	abstract public function password($username);
+	abstract public function password($site, $username);
 
 	abstract public function check_password($password);
 
@@ -73,7 +79,7 @@ abstract class Kohana_Multi_Auth {
 	 */
 	public function get_user($default = FALSE)
 	{
-		return $this->session->get($this->config['session_key'], $default ? $default : new Model_User);
+		return $this->session->get($this->config['session_key'], $default);
 	}
 
 	/**
@@ -136,7 +142,7 @@ abstract class Kohana_Multi_Auth {
 	 */
 	public function logged_in($role = NULL)
 	{
-		return FALSE !== $this->get_user();
+		return ($this->get_user() !== FALSE);
 	}
 
 	/**
@@ -163,6 +169,11 @@ abstract class Kohana_Multi_Auth {
 		return hash($this->config['hash_method'],$str);
 	}
 
+	/**
+	 * Regenerate the session id and saves the user info into the session
+	 *
+	 * @param object user ORM object
+	 */
 	protected function complete_login($user)
 	{
 		// Regenerate session_id
